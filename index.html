@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Список задач</title>
+  <meta name="description" content="Простой и аккуратный список задач. Задачи сохраняются в браузере.">
+  <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131316" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235b5bd6'/><path d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Ставим тему до отрисовки, чтобы не было вспышки светлого фона.
+    try {
+      const theme = localStorage.getItem('todo-list:theme');
+      if (theme) document.documentElement.dataset.theme = theme;
+    } catch {}
+  </script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="app__header">
+      <div>
+        <p class="app__date" id="today"></p>
+        <h1 class="app__title">Мои задачи</h1>
+      </div>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Переключить тему" title="Переключить тему">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </header>
+
+    <section class="card" aria-labelledby="progress-label">
+      <div class="progress">
+        <div class="progress__text">
+          <span id="progress-label">Прогресс</span>
+          <span id="progress-value">0 из 0</span>
+        </div>
+        <div class="progress__track" role="progressbar" aria-labelledby="progress-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar">
+          <div class="progress__fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <form class="add" id="add-form" autocomplete="off">
+        <label class="visually-hidden" for="add-input">Новая задача</label>
+        <input class="add__input" id="add-input" type="text" maxlength="200" placeholder="Что нужно сделать?" enterkeyhint="done">
+        <button class="add__btn" type="submit" aria-label="Добавить задачу">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Добавить</span>
+        </button>
+      </form>
+
+      <div class="toolbar" id="toolbar">
+        <div class="filters" role="tablist" aria-label="Фильтр задач">
+          <button class="filter" role="tab" data-filter="all" type="button">Все <span class="filter__count" data-count="total">0</span></button>
+          <button class="filter" role="tab" data-filter="active" type="button">Активные <span class="filter__count" data-count="active">0</span></button>
+          <button class="filter" role="tab" data-filter="done" type="button">Готово <span class="filter__count" data-count="done">0</span></button>
+        </div>
+        <div class="toolbar__actions">
+          <button class="link-btn" id="toggle-all" type="button">Отметить все</button>
+          <button class="link-btn link-btn--danger" id="clear-done" type="button">Очистить готовые</button>
+        </div>
+      </div>
+
+      <ul class="list" id="list" aria-label="Список задач"></ul>
+
+      <div class="empty" id="empty" hidden>
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="46" rx="8"/><path d="M22 26l5 5 10-10M22 42h20"/></svg>
+        <p class="empty__title" id="empty-title"></p>
+        <p class="empty__text" id="empty-text"></p>
+      </div>
+    </section>
+
+    <footer class="app__footer">
+      <p>Двойной клик по задаче — редактировать. <kbd>/</kbd> — быстро добавить новую.</p>
+      <p>Задачи хранятся только в вашем браузере.</p>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span id="toast-text"></span>
+    <button class="toast__btn" id="toast-undo" type="button">Отменить</button>
+  </div>
+
+  <template id="task-template">
+    <li class="task">
+      <label class="task__check">
+        <input type="checkbox" class="task__checkbox">
+        <span class="task__box" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </span>
+      </label>
+      <span class="task__title"></span>
+      <input class="task__edit" type="text" maxlength="200" hidden>
+      <div class="task__actions">
+        <button class="icon-btn icon-btn--sm task__edit-btn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>
+        </button>
+        <button class="icon-btn icon-btn--sm icon-btn--danger task__delete" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+        </button>
+      </div>
+    </li>
+  </template>
+</body>
+</html>

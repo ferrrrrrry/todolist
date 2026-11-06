@@ -1,0 +1,12 @@
+{
+  "name": "todo-list",
+  "version": "1.0.0",
+  "description": "Список задач на чистом JavaScript с сохранением в localStorage",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve -l 3000 .",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
